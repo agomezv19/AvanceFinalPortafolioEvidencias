@@ -1,0 +1,271 @@
+
+<style>
+#uml { width:100%; overflow-x:auto; }
+#uml svg { width:100% !important; height:auto !important; }
+</style>
+<div id="uml"></div>
+<script type="module">
+import mermaid from 'https://esm.sh/mermaid@11/dist/mermaid.esm.min.mjs';
+const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+await document.fonts.ready;
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'base',
+  fontFamily: '"Anthropic Sans", sans-serif',
+  themeVariables: {
+    darkMode: dark,
+    fontSize: '12px',
+    fontFamily: '"Anthropic Sans", sans-serif',
+    lineColor: dark ? '#9c9a92' : '#73726c',
+    textColor: dark ? '#c2c0b6' : '#3d3d3a',
+    primaryColor: dark ? '#2a2a3a' : '#f0f0f8',
+    primaryBorderColor: dark ? '#6060a0' : '#8080c0',
+    primaryTextColor: dark ? '#c2c0b6' : '#2a2a4a',
+    secondaryColor: dark ? '#1e2e1e' : '#eaf3de',
+    secondaryBorderColor: dark ? '#3a7a3a' : '#5aaa5a',
+    tertiaryColor: dark ? '#2e1e1e' : '#faece7',
+    tertiaryBorderColor: dark ? '#8a4040' : '#cc7060',
+    noteBkgColor: dark ? '#2a2a2a' : '#fffde7',
+    noteTextColor: dark ? '#c2c0b6' : '#3d3d3a',
+  },
+  classDiagram: { defaultRenderer: 'elk' }
+});
+
+const diagram = `classDiagram
+  class Persona {
+    <<abstract>>
+    #id : String
+    #nombre : String
+    #telefono : String
+    +Persona(id, nombre, telefono)
+    +getId() String
+    +getNombre() String
+    +getTelefono() String
+    +setNombre(nombre) void
+    +setTelefono(telefono) void
+    +getResumen()* String
+  }
+
+  class Cliente {
+    -direccion : Direccion
+    -correo : String
+    +Cliente(clienteId, nombre, telefono, correo, calle, ciudad, cp)
+    +getClienteId() String
+    +getCorreo() String
+    +getDireccion() Direccion
+    +setCorreo(correo) void
+    +getResumen() String
+    +compareTo(otro) int
+  }
+
+  class Direccion {
+    -calle : String
+    -ciudad : String
+    -codigoPostal : String
+    +Direccion(calle, ciudad, cp)
+    +getCalle() String
+    +getCiudad() String
+    +getCodigoPostal() String
+  }
+
+  class Genero {
+    <<enum>>
+    ACCION
+    COMEDIA
+    DRAMA
+    TERROR
+    CIENCIA_FICCION
+    ANIMACION
+    DOCUMENTAL
+    ROMANCE
+    +getEtiqueta() String
+  }
+
+  class Pelicula {
+    -id : String
+    -titulo : String
+    -genero : Genero
+    -anio : int
+    -precioPorDia : double
+    -disponible : boolean
+    +Pelicula(id, titulo, genero, anio, precio)
+    +getId() String
+    +getTitulo() String
+    +getGenero() Genero
+    +getPrecioPorDia() double
+    +isDisponible() boolean
+    +setDisponible(disponible) void
+    +compareTo(otra) int
+  }
+
+  class Renta {
+    -rentaId : String
+    -cliente : Cliente
+    -pelicula : Pelicula
+    -fechaInicio : LocalDate
+    -fechaFin : LocalDate
+    -activa : boolean
+    -costoFinal : double
+    +Renta(rentaId, cliente, pelicula, dias)
+    +calcularCostoTotal() double
+    +finalizar() void
+    +getRentaId() String
+    +getCliente() Cliente
+    +getPelicula() Pelicula
+    +isActiva() boolean
+    +getCostoFinal() double
+  }
+
+  class GenericDAO~T_ID~ {
+    <<interface>>
+    +guardar(entidad) void
+    +actualizar(entidad) void
+    +eliminar(id) void
+    +buscarPorId(id) Optional~T~
+    +obtenerTodos() List~T~
+  }
+
+  class PeliculaDAO {
+    <<interface>>
+    +buscarPorGenero(genero) List~Pelicula~
+    +buscarDisponibles() List~Pelicula~
+    +buscarPorTitulo(fragmento) List~Pelicula~
+  }
+
+  class ClienteDAO {
+    <<interface>>
+    +buscarPorNombre(fragmento) List~Cliente~
+    +existeCorreo(correo) boolean
+  }
+
+  class RentaDAO {
+    <<interface>>
+    +buscarPorCliente(clienteId) List~Renta~
+    +buscarActivas() List~Renta~
+  }
+
+  class PeliculaDAOImpl {
+    +guardar(pelicula) void
+    +actualizar(pelicula) void
+    +eliminar(id) void
+    +buscarPorId(id) Optional~Pelicula~
+    +obtenerTodos() List~Pelicula~
+    +buscarDisponibles() List~Pelicula~
+  }
+
+  class ClienteDAOImpl {
+    +guardar(cliente) void
+    +actualizar(cliente) void
+    +eliminar(id) void
+    +buscarPorId(id) Optional~Cliente~
+    +obtenerTodos() List~Cliente~
+    +buscarPorNombre(fragmento) List~Cliente~
+  }
+
+  class RentaDAOImpl {
+    -clienteDAO : ClienteDAO
+    -peliculaDAO : PeliculaDAO
+    +RentaDAOImpl(clienteDAO, peliculaDAO)
+    +guardar(renta) void
+    +actualizar(renta) void
+    +buscarActivas() List~Renta~
+  }
+
+  class DatabaseConnection {
+    <<Singleton>>
+    -instancia : DatabaseConnection
+    -conexion : Connection
+    -URL : String
+    -DatabaseConnection()
+    +getInstancia() DatabaseConnection
+    +getConexion() Connection
+    +cerrar() void
+  }
+
+  class RentaController {
+    -peliculaDAO : PeliculaDAO
+    -clienteDAO : ClienteDAO
+    -rentaDAO : RentaDAO
+    -observadores : List~RentaObserver~
+    -contadorRentas : int
+    +registrarPelicula(p) void
+    +registrarCliente(c) void
+    +rentarPelicula(clienteId, peliculaId, dias) Renta
+    +devolverPelicula(rentaId) Renta
+    +agregarObservador(o) void
+    -notificar(evento) void
+  }
+
+  class ConsoleView {
+    -controlador : RentaController
+    +iniciar() void
+  }
+
+  class RentaObserver {
+    <<interface>>
+    +onEventoRenta(evento) void
+  }
+
+  class EventoRenta {
+    -tipo : Tipo
+    -renta : Renta
+    +getTipo() Tipo
+    +getRenta() Renta
+  }
+
+  class NotificadorConsola {
+    +onEventoRenta(evento) void
+  }
+
+  class RentaException {
+    -codigo : String
+    +RentaException(codigo, mensaje)
+    +getCodigo() String
+  }
+
+  class PeliculaNoDisponibleException {
+    +PeliculaNoDisponibleException(titulo)
+  }
+
+  class ClienteNotFoundException {
+    +ClienteNotFoundException(clienteId)
+  }
+
+  class PeliculaNotFoundException {
+    +PeliculaNotFoundException(peliculaId)
+  }
+
+  class DAOException {
+    +DAOException(operacion, causa)
+  }
+
+  Persona <|-- Cliente
+  Cliente *-- Direccion
+  Pelicula --> Genero
+  Renta o-- Cliente
+  Renta o-- Pelicula
+  GenericDAO~T_ID~ <|-- PeliculaDAO
+  GenericDAO~T_ID~ <|-- ClienteDAO
+  GenericDAO~T_ID~ <|-- RentaDAO
+  PeliculaDAO <|.. PeliculaDAOImpl
+  ClienteDAO <|.. ClienteDAOImpl
+  RentaDAO <|.. RentaDAOImpl
+  RentaDAOImpl ..> DatabaseConnection
+  ClienteDAOImpl ..> DatabaseConnection
+  PeliculaDAOImpl ..> DatabaseConnection
+  RentaController ..> PeliculaDAO
+  RentaController ..> ClienteDAO
+  RentaController ..> RentaDAO
+  RentaController ..> RentaObserver
+  RentaObserver <|.. NotificadorConsola
+  RentaController ..> EventoRenta
+  ConsoleView ..> RentaController
+  RentaException <|-- PeliculaNoDisponibleException
+  RentaException <|-- ClienteNotFoundException
+  RentaException <|-- PeliculaNotFoundException
+  RentaException <|-- DAOException
+`;
+
+const { svg } = await mermaid.render('uml-svg', diagram);
+document.getElementById('uml').innerHTML = svg;
+</script>
